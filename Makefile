@@ -11,15 +11,15 @@ ASSETS_DST := $(BUILD_DIR)/data
 
 #LOC_INC_DIRS := ${shell find ./include -type d}
 #LOC_INCS := $(foreach dir,$(LOC_INC_DIRS),-I$(dir))
-INC := -I ./include -I ./src/util -I ./libs/stb
+INC := -I ./include -I ./src/util -I ./libs/stb -I ./libs/cJSON
 #LDFLAGS := -L./libs/raylib/lib/
 #LDLIBS := -lm
 
 SRCS = $(shell find $(SRC_DIR) -iname "*.c")
-$(info sources = $(SRCS))
 
 ifeq ($(MAKECMDGOALS), install)
 TARGET_NAME := kscout
+SRCS += ./libs/cJSON/cJSON.c 
 else ifeq ($(MAKECMDGOALS), test)
 TARGET_NAME := test_kscout
 SRCS := $(filter-out $(SRC_DIR)/main.c, $(SRCS))
@@ -27,6 +27,7 @@ SRCS += $(shell find ./test -iname "*.c")
 SRCS += $(shell find ./libs/unity -iname "*.c")
 INC += -I ./libs/unity
 endif
+$(info sources = $(SRCS))
 OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRCS))
 DEPS := $(OBJS:.o=.d)
 

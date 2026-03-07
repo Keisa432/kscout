@@ -1,5 +1,7 @@
+#include <stdio.h>
 #include <string.h>
 
+#include "cJSON.h"
 #include "kscout_da.h"
 #include "kscout_parser.h"
 #include "kscout_player_creator.h"
@@ -9,7 +11,7 @@
 typedef struct kscout_view_players_s kscout_view_players_t;
 
 struct kscout_view_players_s {
-  kscout_player_t* items;
+  kscout_player_t *items;
   size_t capacity;
   size_t count;
 };
@@ -83,7 +85,7 @@ int kscout_view_new(kscout_view_t **db, kscout_scouter_t *scouter)
     }
 
     rc = kscout_memblock_init(&ctx->block, 2048);
-    if(rc != KSCOUT_OK) {
+    if (rc != KSCOUT_OK) {
       break;
     }
 
@@ -108,7 +110,8 @@ int kscout_view_new(kscout_view_t **db, kscout_scouter_t *scouter)
  */
 void kscout_view_destroy(kscout_view_t *view)
 {
-  kscout_da_foreach(kscout_player_t, player, &view->players) {
+  kscout_da_foreach(kscout_player_t, player, &view->players)
+  {
     kscout_da_free(player->role_rating);
   }
   kscout_da_free(view->players);
@@ -122,7 +125,7 @@ void kscout_view_destroy(kscout_view_t *view)
  * \param path path to shortlist file in rtf format
  * \return 0 on success,-1 on allocation or configuration error
  */
-int kscout_view_file_load(kscout_view_t **db, const char *path)
+int kscout_view_load_file(kscout_view_t **db, const char *path)
 {
   int rc = 0;
   kscout_view_t *ctx;
@@ -166,6 +169,77 @@ int kscout_view_file_load(kscout_view_t **db, const char *path)
   *db = ctx;
 
   return 0;
+}
+
+int kscout_view_export_to_json(kscout_view_t *view, const char *file_path)
+{
+  if (!view || !file_path) {
+    return KSCOUT_ERR_INVALID;
+  }
+
+  int rc = KSCOUT_OK;
+  char *json_str = NULL;
+  FILE *f = NULL;
+
+  cJSON *root = cJSON_CreateObject();
+  if (!root) {
+    return KSCOUT_ERR_OOM;
+  }
+
+  cJSON *players_array = cJSON_AddArrayToObject(root, "players");
+  if (!players_array) {
+    rc = KSCOUT_ERR_OOM;
+    goto cleanup;
+  }
+
+  kscout_da_foreach(kscout_player_t, player, &view->players) {
+    cJSON *player_obj = cJSON_CreateObject();
+    if (!player_obj) {
+      rc = KSCOUT_ERR_OOM;
+      goto cleanup;
+    }
+    cJSON_AddItemToArray(players_array, player_obj);
+
+    cJSON_AddNumberToObject(player_obj, "uid", player->uid);
+    cJSON_AddStringToObject(player_obj, "name", player->name ? player->name : "");
+
+    cJSON *roles_array = cJSON_AddArrayToObject(player_obj, "roles");
+    if (!roles_array) {
+      rc = KSCOUT_ERR_OOM;
+      goto cleanup;
+    }
+
+    kscout_da_foreach(kscout_role_score_t, rs, &player->role_rating) {
+      if (!rs->def) continue;
+      cJSON *role_obj = cJSON_CreateObject();
+      if (!role_obj) {
+        rc = KSCOUT_ERR_OOM;
+        goto cleanup;
+      }
+      cJSON_AddItemToArray(roles_array, role_obj);
+      cJSON_AddStringToObject(role_obj, "role", rs->def->name);
+      cJSON_AddNumberToObject(role_obj, "score", rs->score);
+    }
+  }
+
+  json_str = cJSON_Print(root);
+  if (!json_str) {
+    rc = KSCOUT_ERR_OOM;
+    goto cleanup;
+  }
+
+  f = fopen(file_path, "w");
+  if (!f) {
+    rc = KSCOUT_ERR_IO;
+    goto cleanup;
+  }
+  fputs(json_str, f);
+  fclose(f);
+
+cleanup:
+  free(json_str);
+  cJSON_Delete(root);
+  return rc;
 }
 
 int kscout_view_iter_init(kscout_view_t *view, kscout_view_iter_t **iter)
