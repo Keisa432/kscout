@@ -312,7 +312,7 @@ int kscout_view_export_to_csv(kscout_view_t *view, const char *file_path)
         }
       }
 
-      fprintf(f, ";%,2f", score);
+      fprintf(f, ";%.2f", score);
       col++;
     }
 
@@ -352,5 +352,3 @@ int kscout_view_iter_next(kscout_view_iter_t *iter, kscout_player_t *player)
 }
 
 void kscout_view_iter_destroy(kscout_view_iter_t *iter) { free(iter); }
-
-// TODO iterators
