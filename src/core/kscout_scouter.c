@@ -191,11 +191,13 @@ int kscout_scouter_player_rate(kscout_scouter_t *scouter,
       weighted_role_score += player->attributes[j] * rw->attribute_weights[j];
     }
 
+    float score = ((float)weighted_role_score / rw->max_weighted_score) *
+                   KSCOUT_MAX_ATTR_VALUE;
+
     kscout_role_score_t entry = {
       .def = rw,
+      .score = score,
     };
-    entry.score = ((float)weighted_role_score / rw->max_weighted_score) *
-                   KSCOUT_MAX_ATTR_VALUE;
     kscout_da_push(rating, entry);
   }
 

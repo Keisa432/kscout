@@ -7,7 +7,14 @@
 #include "kscout_player_creator.h"
 #include "kscout_scouter.h"
 #include "kscout_view.h"
+// TODO wrap player in rating struct -> view stores dyn array of rating structs
+// not players
 
+// TODO kscout_scouter_player_rate either returns new rating struct or takes
+// pointer to it and fills it
+//  call it kscout_scouter_report_t ?
+//  rename kscout_scouter_player_rate to _report_create? pass report with filled
+//  player
 typedef struct kscout_view_players_s kscout_view_players_t;
 
 struct kscout_view_players_s {
@@ -192,7 +199,8 @@ int kscout_view_export_to_json(kscout_view_t *view, const char *file_path)
     goto cleanup;
   }
 
-  kscout_da_foreach(kscout_player_t, player, &view->players) {
+  kscout_da_foreach(kscout_player_t, player, &view->players)
+  {
     cJSON *player_obj = cJSON_CreateObject();
     if (!player_obj) {
       rc = KSCOUT_ERR_OOM;
@@ -201,7 +209,8 @@ int kscout_view_export_to_json(kscout_view_t *view, const char *file_path)
     cJSON_AddItemToArray(players_array, player_obj);
 
     cJSON_AddNumberToObject(player_obj, "uid", player->uid);
-    cJSON_AddStringToObject(player_obj, "name", player->name ? player->name : "");
+    cJSON_AddStringToObject(player_obj, "name",
+                            player->name ? player->name : "");
 
     cJSON *roles_array = cJSON_AddArrayToObject(player_obj, "roles");
     if (!roles_array) {
@@ -209,8 +218,10 @@ int kscout_view_export_to_json(kscout_view_t *view, const char *file_path)
       goto cleanup;
     }
 
-    kscout_da_foreach(kscout_role_score_t, rs, &player->role_rating) {
-      if (!rs->def) continue;
+    kscout_da_foreach(kscout_role_score_t, rs, &player->role_rating)
+    {
+      if (!rs->def)
+        continue;
       cJSON *role_obj = cJSON_CreateObject();
       if (!role_obj) {
         rc = KSCOUT_ERR_OOM;
@@ -218,7 +229,9 @@ int kscout_view_export_to_json(kscout_view_t *view, const char *file_path)
       }
       cJSON_AddItemToArray(roles_array, role_obj);
       cJSON_AddStringToObject(role_obj, "role", rs->def->name);
-      cJSON_AddNumberToObject(role_obj, "score", rs->score);
+      char _fbuf[32] = {0};
+      snprintf(_fbuf, sizeof(_fbuf), "%.2f", rs->score);
+      cJSON_AddRawToObject(role_obj, "score", _fbuf);
     }
   }
 
@@ -240,6 +253,74 @@ cleanup:
   free(json_str);
   cJSON_Delete(root);
   return rc;
+}
+
+int kscout_view_export_to_csv(kscout_view_t *view, const char *file_path)
+{
+  if (!view || !file_path) {
+    return KSCOUT_ERR_INVALID;
+  }
+
+  if (view->players.count == 0) {
+    return KSCOUT_OK;
+  }
+
+  FILE *f = fopen(file_path, "w");
+  if (!f) {
+    return KSCOUT_ERR_IO;
+  }
+
+  kscout_player_t *first = &view->players.items[0];
+
+  /* header */
+  fprintf(f, "UID;Name");
+  kscout_da_foreach(kscout_role_score_t, rs, &first->role_rating)
+  {
+    if (rs->def) {
+      fprintf(f, ";%s", rs->def->name);
+    }
+  }
+  fputc('\n', f);
+
+  /* rows */
+  kscout_da_foreach(kscout_player_t, player, &view->players)
+  {
+    fprintf(f, "%u;%s", player->uid, player->name ? player->name : "");
+
+    size_t col = 0;
+    kscout_da_foreach(kscout_role_score_t, hdr, &first->role_rating)
+    {
+      if (!hdr->def) {
+        col++;
+        continue;
+      }
+
+      float score = 0.0f;
+      if (col < player->role_rating.count) {
+        kscout_role_score_t *rs = &player->role_rating.items[col];
+        if (rs->def && strcmp(rs->def->name, hdr->def->name) == 0) {
+          score = rs->score;
+        } else {
+          /* order mismatch: fall back to linear search */
+          for (size_t i = 0; i < player->role_rating.count; i++) {
+            kscout_role_score_t *s = &player->role_rating.items[i];
+            if (s->def && strcmp(s->def->name, hdr->def->name) == 0) {
+              score = s->score;
+              break;
+            }
+          }
+        }
+      }
+
+      fprintf(f, ";%,2f", score);
+      col++;
+    }
+
+    fputc('\n', f);
+  }
+
+  fclose(f);
+  return KSCOUT_OK;
 }
 
 int kscout_view_iter_init(kscout_view_t *view, kscout_view_iter_t **iter)

@@ -17,6 +17,7 @@ void kscout_view_destroy(kscout_view_t *db);
 
 int kscout_view_load_file(kscout_view_t **db, const char *path);
 int kscout_view_export_to_json(kscout_view_t* view, const char* path);
+int kscout_view_export_to_csv(kscout_view_t* view, const char* path);
 
 int kscout_view_iter_init(kscout_view_t *db, kscout_view_iter_t **it);
 int kscout_view_iter_next(kscout_view_iter_t *it, kscout_player_t *player);

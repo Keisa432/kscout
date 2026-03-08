@@ -8,8 +8,23 @@
 extern "C" {
 #endif
 
-typedef struct kscout_role_weights_s kscout_role_weights_t;
+typedef struct kscout_attr_rating_s kscout_attr_rating_t;
 typedef struct kscout_scouter_s kscout_scouter_t;
+typedef struct kscout_scouter_report_s kscout_scouter_report_t;
+
+struct kscout_attr_rating_s {
+  float technical;
+  float mental;
+  float physical;
+};
+
+struct kscout_scouter_report_s {
+  kscout_player_t player;
+  kscout_attr_rating_t attr;
+  kscout_role_rating_t role_rating;
+};
+
+
 static const char *kscout_scoring_cfg_attr_keys[] = {
     [KSCOUT_ATTR_1V1]  = "1v1",
     [KSCOUT_ATTR_ACC]  = "Acc",

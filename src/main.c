@@ -52,34 +52,11 @@ int main(int argc, char** argv)
     goto l_end;
   }
 
-  rc = kscout_view_export_to_json(view, argv[2]);
+  rc = kscout_view_export_to_csv(view, argv[2]);
   if(rc != KSCOUT_OK) {
     perror("Could not export shortlist to JSON");
     goto l_end;
   }
-  // kscout_view_iter_t *iter;
-  // rc = kscout_view_iter_init(view, &iter);
-  // if (rc != KSCOUT_OK) {
-  //   perror("Could not initialize view iterator");
-  //   goto l_end;
-  // }
-  // kscout_player_t p = {0};
-
-  // while (kscout_view_iter_next(iter, &p) == KSCOUT_OK) {
-  //   char line_buf[512];
-  //   int offset = 0;
-
-  //   offset+= snprintf(line_buf, sizeof(line_buf), "player:%s    ", p.name);
-  //   kscout_da_foreach(kscout_role_score_t, rating, &p.role_rating) {
-  //     offset+= snprintf(line_buf + offset, sizeof(line_buf) - offset,
-  //                       "role: %s score %f    ", rating->def->name,
-  //                       rating->score);
-  //   }
-  //   offset+= snprintf(line_buf + offset, sizeof(line_buf) - offset, "\n");
-  //   printf("%s", line_buf);
-  // }
-
-  // kscout_view_iter_destroy(iter);
 
 l_end:
   printf("end");
