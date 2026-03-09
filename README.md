@@ -15,5 +15,7 @@ CSV formats are supported.
 
 * Missing player roles
 * Limit applied player roles
+* Make it possible to import current team -> compare players by position? use critera such as age and transfervalue 
+to filter players? or by biggest improvement per position?
 * GUI
 * Further analytics

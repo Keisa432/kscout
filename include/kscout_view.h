@@ -2,8 +2,8 @@
 #define KSCOUT_view_H
 
 #include "kscout_error.h"
-#include "kscout_player.h"
 #include "kscout_memblock.h"
+#include "kscout_player.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,11 +16,11 @@ int kscout_view_new(kscout_view_t **db, kscout_scouter_t *scouter);
 void kscout_view_destroy(kscout_view_t *db);
 
 int kscout_view_load_file(kscout_view_t **db, const char *path);
-int kscout_view_export_to_json(kscout_view_t* view, const char* path);
-int kscout_view_export_to_csv(kscout_view_t* view, const char* path);
+int kscout_view_export_to_json(kscout_view_t *view, const char *path);
+int kscout_view_export_to_csv(kscout_view_t *view, const char *path);
 
 int kscout_view_iter_init(kscout_view_t *db, kscout_view_iter_t **it);
-int kscout_view_iter_next(kscout_view_iter_t *it, kscout_player_t *player);
+int kscout_view_iter_next(kscout_view_iter_t *it, kscout_report_t *report);
 void kscout_view_iter_destroy(kscout_view_iter_t *it);
 
 #ifdef __cplusplus

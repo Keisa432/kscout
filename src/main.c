@@ -17,7 +17,8 @@ static int get_exe_dir(char *buf, size_t buflen)
   return 0;
 }
 
-// TODO display data?
+//TODO make it possible to import current team -> compare players by position?
+
 int main(int argc, char** argv)
 {
   kscout_view_t *view;

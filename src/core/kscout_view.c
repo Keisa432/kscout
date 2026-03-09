@@ -7,18 +7,11 @@
 #include "kscout_player_creator.h"
 #include "kscout_scouter.h"
 #include "kscout_view.h"
-// TODO wrap player in rating struct -> view stores dyn array of rating structs
-// not players
 
-// TODO kscout_scouter_player_rate either returns new rating struct or takes
-// pointer to it and fills it
-//  call it kscout_scouter_report_t ?
-//  rename kscout_scouter_player_rate to _report_create? pass report with filled
-//  player
-typedef struct kscout_view_players_s kscout_view_players_t;
+typedef struct kscout_view_reports_s kscout_view_reports_t;
 
-struct kscout_view_players_s {
-  kscout_player_t *items;
+struct kscout_view_reports_s {
+  kscout_report_t *items;
   size_t capacity;
   size_t count;
 };
@@ -28,7 +21,7 @@ struct kscout_view_s {
   kscout_player_creator_t *creator;
   kscout_scouter_t *scouter;
   kscout_memblock_t block;
-  kscout_view_players_t players;
+  kscout_view_reports_t player_reports;
 };
 
 struct kscout_view_iter_s {
@@ -52,16 +45,17 @@ static void kscout_view_player_from_tokens_cb(kscout_parser_token_t *tokens,
                                               unsigned count, void *user)
 {
   kscout_view_t *view = (kscout_view_t *)user;
-  kscout_player_t new_player = {0};
+  kscout_report_t new_report = {0};
 
   if (!view) {
     return;
   }
 
-  if (kscout_player_creator_player_from_tokens(
-          view->creator, tokens, count, &new_player, &view->block) == 0) {
-    kscout_scouter_player_rate(view->scouter, &new_player);
-    kscout_da_push(&view->players, new_player);
+  if (kscout_player_creator_player_from_tokens(view->creator, tokens, count,
+                                               &new_report.player,
+                                               &view->block) == 0) {
+    kscout_scouter_report_create(view->scouter, &new_report);
+    kscout_da_push(&view->player_reports, new_report);
   }
 }
 
@@ -117,11 +111,11 @@ int kscout_view_new(kscout_view_t **db, kscout_scouter_t *scouter)
  */
 void kscout_view_destroy(kscout_view_t *view)
 {
-  kscout_da_foreach(kscout_player_t, player, &view->players)
+  kscout_da_foreach(kscout_report_t, report, &view->player_reports)
   {
-    kscout_da_free(player->role_rating);
+    kscout_da_free(report->role_rating);
   }
-  kscout_da_free(view->players);
+  kscout_da_free(view->player_reports);
   free(view);
 }
 
@@ -199,7 +193,7 @@ int kscout_view_export_to_json(kscout_view_t *view, const char *file_path)
     goto cleanup;
   }
 
-  kscout_da_foreach(kscout_player_t, player, &view->players)
+  kscout_da_foreach(kscout_report_t, report, &view->player_reports)
   {
     cJSON *player_obj = cJSON_CreateObject();
     if (!player_obj) {
@@ -208,9 +202,9 @@ int kscout_view_export_to_json(kscout_view_t *view, const char *file_path)
     }
     cJSON_AddItemToArray(players_array, player_obj);
 
-    cJSON_AddNumberToObject(player_obj, "uid", player->uid);
+    cJSON_AddNumberToObject(player_obj, "uid", report->player.uid);
     cJSON_AddStringToObject(player_obj, "name",
-                            player->name ? player->name : "");
+                            report->player.name ? report->player.name : "");
 
     cJSON *roles_array = cJSON_AddArrayToObject(player_obj, "roles");
     if (!roles_array) {
@@ -218,7 +212,7 @@ int kscout_view_export_to_json(kscout_view_t *view, const char *file_path)
       goto cleanup;
     }
 
-    kscout_da_foreach(kscout_role_score_t, rs, &player->role_rating)
+    kscout_da_foreach(kscout_role_score_t, rs, &report->role_rating)
     {
       if (!rs->def)
         continue;
@@ -261,7 +255,7 @@ int kscout_view_export_to_csv(kscout_view_t *view, const char *file_path)
     return KSCOUT_ERR_INVALID;
   }
 
-  if (view->players.count == 0) {
+  if (view->player_reports.count == 0) {
     return KSCOUT_OK;
   }
 
@@ -270,10 +264,10 @@ int kscout_view_export_to_csv(kscout_view_t *view, const char *file_path)
     return KSCOUT_ERR_IO;
   }
 
-  kscout_player_t *first = &view->players.items[0];
+  kscout_report_t *first = &view->player_reports.items[0];
 
   /* header */
-  fprintf(f, "UID;Name");
+  fprintf(f, "UID;Name;Technical;Mental;Physical");
   kscout_da_foreach(kscout_role_score_t, rs, &first->role_rating)
   {
     if (rs->def) {
@@ -283,9 +277,13 @@ int kscout_view_export_to_csv(kscout_view_t *view, const char *file_path)
   fputc('\n', f);
 
   /* rows */
-  kscout_da_foreach(kscout_player_t, player, &view->players)
+  kscout_da_foreach(kscout_report_t, report, &view->player_reports)
   {
-    fprintf(f, "%u;%s", player->uid, player->name ? player->name : "");
+    fprintf(f, "%u;%s;%.2f;%.2f;%.2f", report->player.uid,
+            report->player.name ? report->player.name : "",
+            report->attr_rating[KSCOUT_CAT_TECHNICAL],
+            report->attr_rating[KSCOUT_CAT_MENTAL],
+            report->attr_rating[KSCOUT_CAT_PHYSICAL]);
 
     size_t col = 0;
     kscout_da_foreach(kscout_role_score_t, hdr, &first->role_rating)
@@ -296,14 +294,14 @@ int kscout_view_export_to_csv(kscout_view_t *view, const char *file_path)
       }
 
       float score = 0.0f;
-      if (col < player->role_rating.count) {
-        kscout_role_score_t *rs = &player->role_rating.items[col];
+      if (col < report->role_rating.count) {
+        kscout_role_score_t *rs = &report->role_rating.items[col];
         if (rs->def && strcmp(rs->def->name, hdr->def->name) == 0) {
           score = rs->score;
         } else {
           /* order mismatch: fall back to linear search */
-          for (size_t i = 0; i < player->role_rating.count; i++) {
-            kscout_role_score_t *s = &player->role_rating.items[i];
+          for (size_t i = 0; i < report->role_rating.count; i++) {
+            kscout_role_score_t *s = &report->role_rating.items[i];
             if (s->def && strcmp(s->def->name, hdr->def->name) == 0) {
               score = s->score;
               break;
@@ -339,14 +337,14 @@ int kscout_view_iter_init(kscout_view_t *view, kscout_view_iter_t **iter)
   return 0;
 }
 
-int kscout_view_iter_next(kscout_view_iter_t *iter, kscout_player_t *player)
+int kscout_view_iter_next(kscout_view_iter_t *iter, kscout_report_t *report)
 {
 
-  if (iter->index >= iter->view->players.count) {
+  if (iter->index >= iter->view->player_reports.count) {
     return KSCOUT_ERR_OUT_OF_BOUNDS;
   }
 
-  *player = iter->view->players.items[iter->index];
+  *report = iter->view->player_reports.items[iter->index];
   iter->index++;
   return KSCOUT_OK;
 }

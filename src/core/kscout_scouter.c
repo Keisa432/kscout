@@ -8,8 +8,8 @@
 #define STB_DS_IMPLEMENTATION
 #include "../../libs/stb/stb_ds.h"
 
-#include "kscout_memblock.h"
 #include "kscout_da.h"
+#include "kscout_memblock.h"
 #include "kscout_roles.h"
 #include "kscout_scouter.h"
 #include "kscout_utils.h"
@@ -176,27 +176,39 @@ void kscout_scouter_destory(kscout_scouter_t *scouter)
   }
 }
 
-int kscout_scouter_player_rate(kscout_scouter_t *scouter,
-                               kscout_player_t *player)
+int kscout_scouter_report_create(kscout_scouter_t *scouter,
+                                 kscout_report_t *report)
 {
-  if (!scouter || !player) {
+  if (!scouter || !report) {
     return KSCOUT_ERR_INVALID;
   }
 
-  kscout_role_rating_t *rating = &player->role_rating;
+  /* Normalized attribute ratings per category (0..20) */
+  for (int cat = 0; cat < KSCOUT_CAT_COUNT; cat++) {
+    int sum = 0, count = 0;
+    for (int j = 0; j < 15 && kscout_attr_by_cat[cat][j] != -1; j++) {
+      sum += report->player.attributes[kscout_attr_by_cat[cat][j]];
+      count++;
+    }
+    report->attr_rating[cat] =
+        count > 0 ? (float)sum / ((float)count * KSCOUT_MAX_ATTR_VALUE) * KSCOUT_MAX_ATTR_VALUE  : 0.0f;
+  }
+
+  kscout_role_rating_t *rating = &report->role_rating;
   for (int i = 0; i < shlen(scouter->roles); i++) {
     const kscout_role_weights_t *rw = &scouter->roles[i].value;
     int weighted_role_score = 0;
     for (int j = 0; j < KSCOUT_ATTR_COUNT; j++) {
-      weighted_role_score += player->attributes[j] * rw->attribute_weights[j];
+      weighted_role_score +=
+          report->player.attributes[j] * rw->attribute_weights[j];
     }
 
     float score = ((float)weighted_role_score / rw->max_weighted_score) *
-                   KSCOUT_MAX_ATTR_VALUE;
+                  KSCOUT_MAX_ATTR_VALUE;
 
     kscout_role_score_t entry = {
-      .def = rw,
-      .score = score,
+        .def = rw,
+        .score = score,
     };
     kscout_da_push(rating, entry);
   }
