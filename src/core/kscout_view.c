@@ -279,8 +279,10 @@ int kscout_view_export_to_csv(kscout_view_t *view, const char *file_path)
   /* rows */
   kscout_da_foreach(kscout_report_t, report, &view->player_reports)
   {
-    fprintf(f, "%u;%s;%.2f;%.2f;%.2f", report->player.uid,
+    fprintf(f, "%u;%s;%d;%s;%.2f;%.2f;%.2f", report->player.uid,
             report->player.name ? report->player.name : "",
+            report->player.age,
+            report->player.nationality ? report->player.nationality : "",
             report->attr_rating[KSCOUT_CAT_TECHNICAL],
             report->attr_rating[KSCOUT_CAT_MENTAL],
             report->attr_rating[KSCOUT_CAT_PHYSICAL]);
