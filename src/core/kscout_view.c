@@ -264,59 +264,31 @@ int kscout_view_export_to_csv(kscout_view_t *view, const char *file_path)
     return KSCOUT_ERR_IO;
   }
 
-  kscout_report_t *first = &view->player_reports.items[0];
-
   /* header */
-  fprintf(f, "UID;Name;Technical;Mental;Physical");
-  kscout_da_foreach(kscout_role_score_t, rs, &first->role_rating)
-  {
-    if (rs->def) {
-      fprintf(f, ";%s", rs->def->name);
-    }
-  }
-  fputc('\n', f);
+  fprintf(f, "UID;Name;Age;Nation;Technical;Mental;Physical;"
+             "Best Overall Role;Best Overall Score;"
+             "Best Position Role;Best Position Score\n");
 
   /* rows */
   kscout_da_foreach(kscout_report_t, report, &view->player_reports)
   {
-    fprintf(f, "%u;%s;%d;%s;%.2f;%.2f;%.2f", report->player.uid,
+    const char *overall_name =
+        report->best_overall_role.def ? report->best_overall_role.def->name
+                                      : "";
+    const char *pos_name =
+        report->best_position_role.def ? report->best_position_role.def->name
+                                       : "";
+
+    fprintf(f, "%u;%s;%d;%s;%.2f;%.2f;%.2f;%s;%.2f;%s;%.2f\n",
+            report->player.uid,
             report->player.name ? report->player.name : "",
             report->player.age,
             report->player.nationality ? report->player.nationality : "",
             report->attr_rating[KSCOUT_CAT_TECHNICAL],
             report->attr_rating[KSCOUT_CAT_MENTAL],
-            report->attr_rating[KSCOUT_CAT_PHYSICAL]);
-
-    size_t col = 0;
-    kscout_da_foreach(kscout_role_score_t, hdr, &first->role_rating)
-    {
-      if (!hdr->def) {
-        col++;
-        continue;
-      }
-
-      float score = 0.0f;
-      if (col < report->role_rating.count) {
-        kscout_role_score_t *rs = &report->role_rating.items[col];
-        if (rs->def && strcmp(rs->def->name, hdr->def->name) == 0) {
-          score = rs->score;
-        } else {
-          /* order mismatch: fall back to linear search */
-          for (size_t i = 0; i < report->role_rating.count; i++) {
-            kscout_role_score_t *s = &report->role_rating.items[i];
-            if (s->def && strcmp(s->def->name, hdr->def->name) == 0) {
-              score = s->score;
-              break;
-            }
-          }
-        }
-      }
-
-      fprintf(f, ";%.2f", score);
-      col++;
-    }
-
-    fputc('\n', f);
+            report->attr_rating[KSCOUT_CAT_PHYSICAL],
+            overall_name, report->best_overall_role.score,
+            pos_name, report->best_position_role.score);
   }
 
   fclose(f);

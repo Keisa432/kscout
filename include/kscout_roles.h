@@ -19,6 +19,7 @@
 #define KSCOUT_ROLE_H
 
 #include <string.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -135,7 +136,7 @@ struct kscout_role_rating_s {
 
 struct kscout_role_weights_s {
   const char *name;
-  char *valid_positions; // currently omitted
+  uint32_t valid_positions; // currently omitted
   int attribute_weights[KSCOUT_ATTR_COUNT];
   int max_weighted_score;
 };

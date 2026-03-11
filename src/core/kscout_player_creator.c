@@ -15,13 +15,95 @@
  */
 #include "kscout_player_creator.h"
 #include "kscout_memblock.h"
-#include "kscout_player.h"
 #include "kscout_parser.h"
+#include "kscout_player.h"
 #include "kscout_utils.h"
 
 #include <errno.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+
+
+
+
+static void pos_lookup(const char *key, uint32_t *mask)
+{
+  for (size_t i = 0; i < KSCOUT_POS_MAP_LEN; i++) {
+    if (strcmp(key, kscout_pos_map[i].token) == 0)
+      *mask |= (1u << kscout_pos_map[i].pos);
+  }
+}
+
+/*
+ * Parse an FM position string into a bitmask.
+ *
+ * Grammar:
+ *   positions = group { ", " group }
+ *   group     = codes [ " (" laterals ")" ]
+ *   codes     = code { "/" code }
+ *   laterals  = one or more of 'R', 'L', 'Z'
+ *
+ * Examples: "TW", "M (RLZ)", "V/FV (RL)", "OM (R), ST (Z)",
+ *           "V/FV/M/OM (R)", "DM, M (Z)"
+ */
+static uint32_t positions_from_str(const char *str)
+{
+  uint32_t mask = 0;
+  if (!str || !*str || strcmp(str, "-") == 0)
+    return 0;
+
+  char buf[128];
+  strncpy(buf, str, sizeof(buf) - 1);
+  buf[sizeof(buf) - 1] = '\0';
+
+  char *p = buf;
+  while (p) {
+    /* split on literal ", " */
+    char *sep = strstr(p, ", ");
+    if (sep)
+      *sep = '\0';
+
+    /* extract optional " (RLZ)" lateral suffix */
+    char lat[8] = "";
+    char *lp = strrchr(p, '(');
+    if (lp && lp > p && *(lp - 1) == ' ') {
+      size_t li = 0;
+      for (char *c = lp + 1; *c && *c != ')' && li < sizeof(lat) - 1; c++)
+        lat[li++] = *c;
+      lat[li] = '\0';
+      *(lp - 1) = '\0';
+    }
+
+    /* split codes by '/' and expand each lateral letter */
+    char *code = strtok(p, "/");
+    while (code) {
+      if (lat[0]) {
+        for (const char *l = lat; *l; l++) {
+          char key[16];
+          snprintf(key, sizeof(key), "%s (%c)", code, *l);
+          pos_lookup(key, &mask);
+        }
+      } else {
+        pos_lookup(code, &mask);
+      }
+      code = strtok(NULL, "/");
+    }
+
+    p = sep ? sep + 2 : NULL;
+  }
+  return mask;
+}
+
+static int parse_positions(const char *str, void *dest, kscout_memblock_t *mb)
+{
+  (void)mb;
+  char _tbuf[128];
+  *(uint32_t *)dest = positions_from_str(TRIM(str));
+  return 1;
+}
 
 /* -------------------------------------------------------------------------
  * Parse functions
@@ -217,8 +299,8 @@ static int parse_transfer_value(const char *str, void *dest,
   return 1;
 }
 
-/* Parse foot rating strings: "Sehr stark"->6, "Stark"->5, "Gut" ->4 "Passabel"->3,
- * "Schwach"->2, "Sehr schwach"->1, else 0 */
+/* Parse foot rating strings: "Sehr stark"->6, "Stark"->5, "Gut" ->4
+ * "Passabel"->3, "Schwach"->2, "Sehr schwach"->1, else 0 */
 static int parse_foot(const char *str, void *dest, kscout_memblock_t *mb)
 {
   (void)mb;
@@ -263,8 +345,8 @@ typedef struct {
 static const kscout_field_t kscout_fields[] = {
     /* 0  */ FIELD(uid, parse_uint32),
     /* 1  */ FIELD(name, parse_string),
-    /* 2  */ FIELD(position, parse_string),
-    /* 3  */ FIELD(position2, parse_string),
+    /* 2  */ FIELD(positions, parse_positions),
+    /* 3  */ FIELD(positions_natural, parse_positions),
     /* 4  */ FIELD(age, parse_uint8),
     /* 5  */ FIELD(height_cm, parse_height),
     /* 6  */ FIELD(weight_kg, parse_weight),

@@ -89,8 +89,27 @@ static int kscout_scoring_load_role_configs(kscout_scouter_t *scouter,
       if (strcmp(key, "type") == 0)
         continue;
 
-      if (strcmp(key, "positions") == 0)
+      if (strcmp(key, "positions") == 0) {
+        if (role_key != NULL) {
+          kscout_role_weights_t *rw =
+              &shgetp(scouter->roles, role_key)->value;
+          char pos_buf[256];
+          strncpy(pos_buf, val, sizeof(pos_buf) - 1);
+          pos_buf[sizeof(pos_buf) - 1] = '\0';
+          char *tok = pos_buf;
+          while (tok) {
+            char *sep = strstr(tok, ", ");
+            if (sep)
+              *sep = '\0';
+            for (size_t i = 0; i < KSCOUT_POS_MAP_LEN; i++) {
+              if (strcmp(tok, kscout_pos_map[i].token) == 0)
+                KSCOUT_POS_SET(rw->valid_positions, kscout_pos_map[i].pos);
+            }
+            tok = sep ? sep + 2 : NULL;
+          }
+        }
         continue;
+      }
 
       if (strcmp(key, "name") == 0) {
         role_key = kscout_memblock_strdup(&scouter->strs, val);
@@ -191,7 +210,9 @@ int kscout_scouter_report_create(kscout_scouter_t *scouter,
       count++;
     }
     report->attr_rating[cat] =
-        count > 0 ? (float)sum / ((float)count * KSCOUT_MAX_ATTR_VALUE) * KSCOUT_MAX_ATTR_VALUE  : 0.0f;
+        count > 0 ? (float)sum / ((float)count * KSCOUT_MAX_ATTR_VALUE) *
+                        KSCOUT_MAX_ATTR_VALUE
+                  : 0.0f;
   }
 
   kscout_role_rating_t *rating = &report->role_rating;
@@ -210,6 +231,17 @@ int kscout_scouter_report_create(kscout_scouter_t *scouter,
         .def = rw,
         .score = score,
     };
+
+    if (entry.score > report->best_overall_role.score) {
+      report->best_overall_role = entry;
+    }
+
+    if (KSCOUT_POS_MATCH(report->player.positions_natural,
+                         entry.def->valid_positions) &&
+        entry.score > report->best_position_role.score) {
+      report->best_position_role = entry;
+    }
+
     kscout_da_push(rating, entry);
   }
 

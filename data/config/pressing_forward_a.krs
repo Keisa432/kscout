@@ -1,6 +1,6 @@
 type=player-role
 name=pressing-forward-a
-positions=""
+positions=ST (R), ST (L), ST (Z)
 
 Fin=2
 Fir=2

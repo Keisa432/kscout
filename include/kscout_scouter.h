@@ -15,6 +15,8 @@ struct kscout_report_s {
   kscout_player_t player;
   float attr_rating[KSCOUT_CAT_COUNT];
   kscout_role_rating_t role_rating;
+  kscout_role_score_t best_overall_role;
+  kscout_role_score_t best_position_role;
 };
 
 static const char *kscout_scoring_cfg_attr_keys[] = {
@@ -43,6 +45,25 @@ static const char *kscout_scoring_cfg_attr_keys[] = {
     [KSCOUT_ATTR_TRO] = "TRO",   [KSCOUT_ATTR_VIS] = "Vis",
     [KSCOUT_ATTR_WOR] = "Wor",
 };
+
+/* -------------------------------------------------------------------------
+ * Position bitmask accessors
+ * ---------------------------------------------------------------------- */
+
+/* Test whether a player can play a given position. */
+#define KSCOUT_POS_HAS(mask, pos) (((mask) >> (pos)) & 1u)
+
+/* Set a position bit. */
+#define KSCOUT_POS_SET(mask, pos) ((mask) |= (1u << (pos)))
+
+/* Clear a position bit. */
+#define KSCOUT_POS_CLEAR(mask, pos) ((mask) &= ~(1u << (pos)))
+
+/* True if the player has any position in common with a filter mask. */
+#define KSCOUT_POS_MATCH(mask, filter) (((mask) & (filter)) != 0)
+
+/* Build a single-position mask from a kscout_position_t value. */
+#define KSCOUT_POS_BIT(pos) (1u << (pos))
 
 int kscout_scouter_new(kscout_scouter_t **scouter, const char *cfg_path);
 

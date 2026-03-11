@@ -1,6 +1,6 @@
 type=player-role
 name=trequartista-st-a
-positions=""
+positions=ST (R), ST (L), ST (Z)
 
 Dri=3
 Fin=2

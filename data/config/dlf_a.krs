@@ -1,6 +1,6 @@
 type=player-role
 name=deep-lying-forward-a
-positions=""
+positions=ST (R), ST (L), ST (Z)
 
 Dri=2
 Fin=2
