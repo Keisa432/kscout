@@ -46,29 +46,19 @@ typedef enum {
 
 typedef enum {
   KSCOUT_POS_GK = 0, // Goalkeeper
-  KSCOUT_POS_FBL,    // Left Defender
-  KSCOUT_POS_CDL,    // Central Defender (Left)
-  KSCOUT_POS_CDC,    // Central Defender (Center)
-  KSCOUT_POS_CDR,    // Central Defender (Right)
-  KSCOUT_POS_FBR,    // Right Defender
+  KSCOUT_POS_FBL,    // Fullback (Left)
+  KSCOUT_POS_CD,     // Central Defender
+  KSCOUT_POS_FBR,    // Fullback (Right)
   KSCOUT_POS_WBL,    // Wing Back (Left)
-  KSCOUT_POS_DML,    // Defensive Midfielder (Left)
-  KSCOUT_POS_DMC,    // Defensive Midfielder (Center)
-  KSCOUT_POS_DMR,    // Defensive Midfielder (Right)
+  KSCOUT_POS_DM,     // Defendsive Midfielder
   KSCOUT_POS_WBR,    // Wing Back (Right)
-  KSCOUT_POS_WL,     // Wide Midfielder (Left)
   KSCOUT_POS_ML,     // Midfielder (Left)
   KSCOUT_POS_MC,     // Midfielder (Center)
   KSCOUT_POS_MR,     // Midfielder (Right)
-  KSCOUT_POS_WR,     // Wide Midfielder (Right)
-  KSCOUT_POS_AWL,    // Attacking Wide Midfielder (Left)
   KSCOUT_POS_AML,    // Attacking Midfielder (Left)
   KSCOUT_POS_AMC,    // Attacking Midfielder (Center)
   KSCOUT_POS_AMR,    // Attacking Midfielder (Right)
-  KSCOUT_POS_AWR,    // Attacking Wide Midfielder (Right)
-  KSCOUT_POS_FWDL,   // Forward (Left)
-  KSCOUT_POS_FWDC,   // Forward (Center)
-  KSCOUT_POS_FWDR    // Forward (Right)
+  KSCOUT_POS_FWD,    // Forward
 } kscout_position_t;
 
 struct kscout_player_s {
@@ -109,17 +99,13 @@ typedef struct {
 } kscout_pos_entry_t;
 
 static const kscout_pos_entry_t kscout_pos_map[] = {
-  {"TW", KSCOUT_POS_GK},       {"LA", KSCOUT_POS_FBL},
-  {"IV", KSCOUT_POS_CDC},      {"RA", KSCOUT_POS_FBR},
-  {"LV", KSCOUT_POS_WBL},      {"RV", KSCOUT_POS_WBR},
-  {"DM", KSCOUT_POS_DMC},      {"DM (L)", KSCOUT_POS_DML},
-  {"DM (R)", KSCOUT_POS_DMR},  {"M (L)", KSCOUT_POS_ML},
-  {"M (Z)", KSCOUT_POS_MC},    {"M (R)", KSCOUT_POS_MR},
-    {"OM (L)", KSCOUT_POS_AML},  {"OM (Z)", KSCOUT_POS_AMC},
-    {"OM (R)", KSCOUT_POS_AMR},  {"FV (L)", KSCOUT_POS_AWL},
-    {"FV (R)", KSCOUT_POS_AWR},  {"V (L)", KSCOUT_POS_FWDL},
-    {"V (Z)", KSCOUT_POS_FWDC},  {"V (R)", KSCOUT_POS_FWDR},
-    {"ST (Z)", KSCOUT_POS_FWDC},
+    {"TW", KSCOUT_POS_GK},      {"V (R)", KSCOUT_POS_FBR},
+    {"V (Z)", KSCOUT_POS_CD},   {"V (L)", KSCOUT_POS_FBL},
+    {"FV (R)", KSCOUT_POS_WBR}, {"FV (L)", KSCOUT_POS_WBL},
+    {"DM", KSCOUT_POS_DM},      {"M (R)", KSCOUT_POS_MR},
+    {"M (Z)", KSCOUT_POS_MC},   {"M (L)", KSCOUT_POS_ML},
+    {"OM (R)", KSCOUT_POS_AMR}, {"OM (Z)", KSCOUT_POS_AMC},
+    {"OM (L)", KSCOUT_POS_AML}, {"ST (Z)", KSCOUT_POS_FWD},
 };
 
 #define KSCOUT_POS_MAP_LEN (sizeof(kscout_pos_map) / sizeof(kscout_pos_map[0]))

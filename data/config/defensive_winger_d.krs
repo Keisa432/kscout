@@ -1,0 +1,21 @@
+type=player-role
+name=defensive-winger-d
+positions=M (R), M (L)
+
+Cro=2
+Dri=2
+Fir=2
+Mar=2
+Tck=2
+Tec=3
+Agg=2
+Ant=3
+Con=2
+Dec=2
+OtB=3
+Pos=3
+Tea=3
+Wor=3
+Acc=4
+Pac=4
+Sta=3

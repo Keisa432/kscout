@@ -1,6 +1,6 @@
 type=player-role
 name=attacking-midfielder-a
-positions=""
+positions=OM (Z)
 
 Dri=3
 Fin=2

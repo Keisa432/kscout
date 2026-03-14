@@ -1,6 +1,6 @@
 type=player-role
 name=target_forward-s
-positions=ST (R), ST (L), ST (Z)
+positions=ST (Z)
 
 Fin=2
 Fir=2

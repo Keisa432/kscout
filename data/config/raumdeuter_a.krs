@@ -1,6 +1,6 @@
 type=player-role
 name=raumdeuter-a
-positions=""
+positions=OM (R), OM (L)
 
 Fin=3
 Fir=2

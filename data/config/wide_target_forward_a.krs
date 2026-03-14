@@ -1,6 +1,6 @@
 type=player-role
 name=wide-target-forward-a
-positions=""
+positions=OM (R), OM (L)
 
 Cro=2
 Fin=2

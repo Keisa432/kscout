@@ -1,6 +1,6 @@
 type=player-role
 name=poacher-a
-positions=ST (R), ST (L), ST (Z)
+positions=ST (Z)
 
 Fin=3
 Fir=2

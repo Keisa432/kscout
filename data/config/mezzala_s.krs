@@ -1,25 +1,20 @@
 type=player-role
-name=box-to-box-midfielder-s
+name=mezzala-s
 positions=M (Z)
 
 Dri=2
-Fin=2
 Fir=2
 Lon=2
 Pas=3
-Tck=3
-Tec=2
-Agg=2
+Tck=2
+Tec=3
 Ant=2
 Cmp=2
-Dec=2
+Dec=3
 OtB=3
-Pos=2
-Tea=3
+Vis=2
 Wor=3
 Acc=4
 Bal=2
 Pac=4
-Sta=3
-Str=2
-
+Sta=2

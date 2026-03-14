@@ -4,8 +4,7 @@
 #include <stdio.h>
 #include <windows.h>
 
-static int get_exe_dir(char *buf, size_t buflen)
-{
+static int get_exe_dir(char *buf, size_t buflen) {
   DWORD len = GetModuleFileNameA(NULL, buf, (DWORD)buflen);
   if (len == 0 || len == buflen)
     return -1;
@@ -17,16 +16,15 @@ static int get_exe_dir(char *buf, size_t buflen)
   return 0;
 }
 
-//TODO make it possible to import current team -> compare players by position?
+// TODO make it possible to import current team -> compare players by position?
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
   kscout_view_t *view;
   kscout_scouter_t *scouter;
   const char *role_cfg_path = ".\\data\\config";
   char path[256];
-  
-  if(argc < 3) {
+
+  if (argc < 3) {
     perror("Missing arguments\n");
     exit(1);
   }
@@ -54,7 +52,7 @@ int main(int argc, char** argv)
   }
 
   rc = kscout_view_export_to_csv(view, argv[2]);
-  if(rc != KSCOUT_OK) {
+  if (rc != KSCOUT_OK) {
     perror("Could not export shortlist to JSON");
     goto l_end;
   }

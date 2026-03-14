@@ -1,6 +1,5 @@
 
-
-CC := gcc
+CC ?= gcc
 CCFLAGS := -g -fdiagnostics-color=always -MMD -MP
 
 SRC_DIR := ./src

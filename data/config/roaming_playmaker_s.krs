@@ -1,25 +1,23 @@
 type=player-role
-name=box-to-box-midfielder-s
+name=roaming-playmaker-s
 positions=M (Z)
 
 Dri=2
-Fin=2
-Fir=2
+Fir=3
 Lon=2
 Pas=3
-Tck=3
-Tec=2
-Agg=2
-Ant=2
-Cmp=2
-Dec=2
+Tec=3
+Ant=3
+Cmp=3
+Con=2
+Dec=3
 OtB=3
 Pos=2
 Tea=3
+Vis=3
 Wor=3
 Acc=4
+Agi=2
 Bal=2
 Pac=4
 Sta=3
-Str=2
-

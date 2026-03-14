@@ -1,0 +1,19 @@
+type=player-role
+name=central-midfielder-s
+positions=M (Z)
+
+Fir=3
+Pas=3
+Tck=3
+Tec=2
+Ant=2
+Cmp=2
+Con=2
+Dec=3
+OtB=2
+Tea=3
+Vis=2
+Wor=2
+Acc=4
+Pac=4
+Sta=2

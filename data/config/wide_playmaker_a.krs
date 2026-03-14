@@ -1,8 +1,8 @@
 type=player-role
-name=deep-lying-forward-s
-positions=ST (Z)
+name=wide-playmaker-a
+positions=M (R), M (L)
 
-Fin=2
+Dri=3
 Fir=3
 Pas=3
 Tec=3
@@ -12,8 +12,7 @@ Dec=3
 Fla=2
 OtB=3
 Tea=3
-Vis=2
+Vis=3
 Acc=4
-Bal=2
+Agi=3
 Pac=4
-Str=2

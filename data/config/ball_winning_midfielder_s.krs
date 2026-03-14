@@ -1,0 +1,18 @@
+type=player-role
+name=ball-winning-midfielder-d
+positions=DM, M (Z)
+
+Mar=2
+Pas=2
+Tck=3
+Agg=3
+Ant=3
+Bra=2
+Con=2
+Tea=3
+Wor=3
+Acc=4
+Agi=2
+Pac=4
+Sta=3
+Str=2

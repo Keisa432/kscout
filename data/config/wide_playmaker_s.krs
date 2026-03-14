@@ -1,18 +1,16 @@
 type=player-role
-name=enganche-s
-positions=OM (Z)
+name=wide-playmaker-a
+positions=M (R), M (L)
 
 Dri=2
 Fir=3
 Pas=3
 Tec=3
-Ant=2
 Cmp=3
 Dec=3
-Fla=2
 OtB=2
-Tea=2
+Tea=3
 Vis=3
 Acc=4
-Agi=2
+Agi=3
 Pac=4
