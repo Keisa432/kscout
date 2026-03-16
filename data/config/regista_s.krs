@@ -1,5 +1,5 @@
 type=player-role
-name=roaming-playmaker-s
+name=regista-s
 positions=DM, M (Z)
 
 Dri=2
@@ -7,17 +7,13 @@ Fir=3
 Lon=2
 Pas=3
 Tec=3
-Ant=3
+Ant=2
 Cmp=3
-Con=2
 Dec=3
+Fla=3
 OtB=3
-Pos=2
 Tea=3
 Vis=3
-Wor=3
 Acc=4
-Agi=2
 Bal=2
 Pac=4
-Sta=3

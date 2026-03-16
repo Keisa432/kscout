@@ -1,0 +1,21 @@
+type=player-role
+name=inverted-wing-back-d
+positions=FV (R), FV (L)
+
+Fir=2
+Mar=2
+Pas=3
+Tck=3
+Tec=2
+Ant=3
+Cmp=2
+Con=2
+Dec=3
+OtB=2
+Pos=3
+Tea=3
+Wor=2
+Acc=4
+Agi=2
+Pac=4
+Sta=2

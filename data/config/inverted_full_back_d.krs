@@ -1,0 +1,24 @@
+type=player-role
+name=inverted-full-back-d
+positions=V (R), V (L)
+
+Dri=2
+Fir=2
+Hea=3
+Mar=3
+Pas=2
+Tck=3
+Tec=2
+Agg=2
+Ant=2
+Bra=2
+Cmp=2
+Con=2
+Dec=2
+Pos=3
+Wor=2
+Acc=4
+Agi=2
+Jum=2
+Pac=4
+Str=3
