@@ -1,0 +1,22 @@
+type=player-role
+name=ball-playing-defender-d
+positions=V (Z)
+
+Fir=2
+Hea=3
+Mar=3
+Pas=3
+Tck=3
+Tec=2
+Agg=2
+Ant=2
+Bra=2
+Cmp=3
+Con=2
+Dec=2
+Pos=3
+Vis=2
+Acc=4
+Jum=3
+Pac=4
+Str=3

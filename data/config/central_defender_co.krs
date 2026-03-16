@@ -1,0 +1,17 @@
+type=player-role
+name=central-defender-st
+positions=V (Z)
+
+Hea=2
+Mar=3
+Tck=3
+Ant=3
+Bra=2
+Cmp=2
+Con=3
+Dec=3
+Pos=3
+Acc=4
+Jum=2
+Pac=4
+Str=2

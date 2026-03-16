@@ -1,0 +1,17 @@
+type=player-role
+name=goalkeeper_d
+positions=GK
+
+Aer=3
+Cmd=3
+Com=3
+Han=3
+Kic=3
+1v1=2
+Ref=3
+Thr=2
+Ant=2
+Con=3
+Dec=2
+Pos=3
+Agi=3
