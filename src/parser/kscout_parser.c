@@ -23,8 +23,7 @@ struct kscout_parser_s {
  * -------------------------------------------------------------------------- */
 
 /* Trim leading/trailing whitespace in-place and return the pointer. */
-static char *trim(char *s)
-{
+static char *trim(char *s) {
   while (*s && isspace((unsigned char)*s))
     s++;
   char *end = s + strlen(s);
@@ -35,8 +34,7 @@ static char *trim(char *s)
 }
 
 /* Returns non-zero if the line is a separator line (all dashes / pipes). */
-static int is_separator_line(const char *line)
-{
+static int is_separator_line(const char *line) {
   for (const char *p = line; *p; p++) {
     if (*p != '-' && *p != '|' && !isspace((unsigned char)*p) && *p != '\r' &&
         *p != '\n') {
@@ -48,8 +46,7 @@ static int is_separator_line(const char *line)
 }
 
 /* Returns non-zero if the line is empty or contains only whitespace/CR/LF. */
-static int is_blank_line(const char *line)
-{
+static int is_blank_line(const char *line) {
   for (const char *p = line; *p; p++) {
     if (!isspace((unsigned char)*p))
       return 0;
@@ -67,8 +64,7 @@ static int is_blank_line(const char *line)
  * Each token value is trimmed in-place.  `buf` must be a writable buffer
  * containing the line (it will be modified by strtok-style splitting).
  */
-static int tokenize_pipe_line(char *buf, char **out, int max_out)
-{
+static int tokenize_pipe_line(char *buf, char **out, int max_out) {
   int cnt = 0;
   char *p = buf;
 
@@ -100,8 +96,7 @@ static int tokenize_pipe_line(char *buf, char **out, int max_out)
  * Public API
  * -------------------------------------------------------------------------- */
 
-int kscout_parser_new(kscout_parser_t **parser, kscout_parser_cfg_t *cfg)
-{
+int kscout_parser_new(kscout_parser_t **parser, kscout_parser_cfg_t *cfg) {
   if (!parser || !cfg) {
     return -1;
   }
@@ -120,8 +115,7 @@ int kscout_parser_new(kscout_parser_t **parser, kscout_parser_cfg_t *cfg)
 
 void kscout_parser_destroy(kscout_parser_t *parser) { free(parser); }
 
-int kscout_parser_import(kscout_parser_t *parser, const char *path)
-{
+int kscout_parser_import(kscout_parser_t *parser, const char *path) {
   if (!parser || !path) {
     return -1;
   }
@@ -171,14 +165,19 @@ int kscout_parser_import(kscout_parser_t *parser, const char *path)
       int token_cnt = val_cnt < parser->header_token_cnt
                           ? val_cnt
                           : parser->header_token_cnt;
-
+      /* skip Mel column for squad views */
+      int out_idx = 0;
       for (int i = 0; i < token_cnt; i++) {
-        parser->token[i].key = parser->header_keys[i];
-        parser->token[i].value = values[i];
+        if (strncmp(parser->header_keys[i], "Mel", 3) == 0) {
+          continue;
+        }
+        parser->token[out_idx].key = parser->header_keys[i];
+        parser->token[out_idx].value = values[i];
+        out_idx++;
       }
 
-      if (parser->cb && token_cnt > 0) {
-        parser->cb(parser->token, (unsigned)token_cnt, parser->cb_arg);
+      if (parser->cb && out_idx > 0) {
+        parser->cb(parser->token, (unsigned)out_idx, parser->cb_arg);
       }
     }
   }

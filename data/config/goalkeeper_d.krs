@@ -1,6 +1,6 @@
 type=player-role
 name=goalkeeper_d
-positions=GK
+positions=TW
 
 Aer=3
 Cmd=3

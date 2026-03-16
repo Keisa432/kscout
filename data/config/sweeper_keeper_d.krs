@@ -1,6 +1,6 @@
 type=player-role
 name=sweeper-keeper-d
-positions=GK
+positions=TW
 
 Aer=2
 Cmd=3
