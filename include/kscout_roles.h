@@ -20,6 +20,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include "kscout_da.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -128,11 +129,7 @@ struct kscout_role_score_s {
   float score;
 };
 
-struct kscout_role_rating_s {
-  kscout_role_score_t *items;
-  size_t count;
-  size_t capacity;
-};
+KSCOUT_DA_DEFINE(kscout_role_rating_s, kscout_role_score_t, ratings);
 
 struct kscout_role_weights_s {
   const char *name;

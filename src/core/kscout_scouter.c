@@ -5,10 +5,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#define STB_DS_IMPLEMENTATION
-#include "../../libs/stb/stb_ds.h"
-
 #include "kscout_da.h"
+#include "kscout_hash.h"
 #include "kscout_memblock.h"
 #include "kscout_roles.h"
 #include "kscout_scouter.h"
@@ -18,15 +16,8 @@
  * Internal Types
  * -------------------------------------------------------------------------- */
 
-typedef struct kscout_role_entry_s kscout_role_entry_t;
-
-struct kscout_role_entry_s {
-  char *key;
-  kscout_role_weights_t value;
-};
-
 struct kscout_scouter_s {
-  kscout_role_entry_t *roles;
+  kscout_hash_t roles;
   kscout_memblock_t strs;
 };
 
@@ -72,12 +63,14 @@ static int kscout_scoring_load_role_configs(kscout_scouter_t *scouter,
     while (fgets(line, sizeof(line), fp)) {
       char *p = line;
 
-      if (*p == '\0' || *p == '#')
+      if (*p == '\0' || *p == '#') {
         continue;
+      }
 
       char *eq = strchr(p, '=');
-      if (!eq)
+      if (!eq) {
         continue;
+      }
 
       *eq = '\0';
       char _key_buf[256];
@@ -86,24 +79,26 @@ static int kscout_scoring_load_role_configs(kscout_scouter_t *scouter,
       const char *val = trim((eq + 1), _val_buf, 256);
 
       /* skip metadata */
-      if (strcmp(key, "type") == 0)
+      if (strcmp(key, "type") == 0) {
         continue;
+      }
 
       if (strcmp(key, "positions") == 0) {
         if (role_key != NULL) {
-          kscout_role_weights_t *rw =
-              &shgetp(scouter->roles, role_key)->value;
+          kscout_role_weights_t *rw = kscout_hash_get(&scouter->roles, role_key);
           char pos_buf[256];
           strncpy(pos_buf, val, sizeof(pos_buf) - 1);
           pos_buf[sizeof(pos_buf) - 1] = '\0';
           char *tok = pos_buf;
           while (tok) {
             char *sep = strstr(tok, ", ");
-            if (sep)
+            if (sep) {
               *sep = '\0';
+            }
             for (size_t i = 0; i < KSCOUT_POS_MAP_LEN; i++) {
-              if (strcmp(tok, kscout_pos_map[i].token) == 0)
+              if (strcmp(tok, kscout_pos_map[i].token) == 0) {
                 KSCOUT_POS_SET(rw->valid_positions, kscout_pos_map[i].pos);
+              }
             }
             tok = sep ? sep + 2 : NULL;
           }
@@ -113,14 +108,26 @@ static int kscout_scoring_load_role_configs(kscout_scouter_t *scouter,
 
       if (strcmp(key, "name") == 0) {
         role_key = kscout_memblock_strdup(&scouter->strs, val);
-        if (shgeti(scouter->roles, role_key) >= 0) {
+        if (kscout_hash_get(&scouter->roles, role_key) != NULL) {
           // abort parsing of file -> role entries must be unique
           break;
         }
 
-        kscout_role_weights_t zero = {0};
-        zero.name = role_key;
-        shput(scouter->roles, role_key, zero);
+        kscout_role_weights_t *rw =
+            kscout_memblock_calloc(&scouter->strs, 1, sizeof(*rw));
+        if (!rw) {
+          fclose(fp);
+          closedir(dir);
+          return KSCOUT_ERR_OOM;
+        }
+        rw->name = role_key;
+
+        int rc = kscout_hash_put(&scouter->roles, role_key, rw);
+        if (rc != KSCOUT_OK) {
+          fclose(fp);
+          closedir(dir);
+          return rc;
+        }
         continue;
       }
 
@@ -132,7 +139,7 @@ static int kscout_scoring_load_role_configs(kscout_scouter_t *scouter,
           unsigned long w = strtoul(val, &end, 10);
           if (*end == '\0') {
             kscout_role_weights_t *rw =
-                &shgetp(scouter->roles, role_key)->value;
+                kscout_hash_get(&scouter->roles, role_key);
             rw->attribute_weights[attr] = (int)w;
             rw->max_weighted_score +=
                 KSCOUT_MAX_ATTR_VALUE * rw->attribute_weights[attr];
@@ -170,6 +177,11 @@ int kscout_scouter_new(kscout_scouter_t **scouter, const char *cfg_path)
     goto l_error;
   }
 
+  rc = kscout_hash_init(&s->roles, 256);
+  if (rc != KSCOUT_OK) {
+    goto l_error;
+  }
+
   rc = kscout_scoring_load_role_configs(s, cfg_path);
   if (rc != KSCOUT_OK) {
     goto l_error;
@@ -180,7 +192,7 @@ int kscout_scouter_new(kscout_scouter_t **scouter, const char *cfg_path)
   return rc;
 
 l_error:
-  shfree(s->roles);
+  kscout_hash_destroy(&s->roles);
   kscout_memblock_destroy(&s->strs);
   free(s);
   return rc;
@@ -189,7 +201,7 @@ l_error:
 void kscout_scouter_destory(kscout_scouter_t *scouter)
 {
   if (scouter) {
-    shfree(scouter->roles);
+    kscout_hash_destroy(&scouter->roles);
     kscout_memblock_destroy(&scouter->strs);
     free(scouter);
   }
@@ -216,8 +228,12 @@ int kscout_scouter_report_create(kscout_scouter_t *scouter,
   }
 
   kscout_role_rating_t *rating = &report->role_rating;
-  for (int i = 0; i < shlen(scouter->roles); i++) {
-    const kscout_role_weights_t *rw = &scouter->roles[i].value;
+  for (size_t i = 0; i < scouter->roles.capacity; i++) {
+    kscout_hash_slot_t *slot = &scouter->roles.slots[i];
+    if (!slot->key) {
+      continue;
+    }
+    const kscout_role_weights_t *rw = slot->item;
     int weighted_role_score = 0;
     for (int j = 0; j < KSCOUT_ATTR_COUNT; j++) {
       weighted_role_score +=

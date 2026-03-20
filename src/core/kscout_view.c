@@ -9,12 +9,11 @@
 #include "kscout_view.h"
 
 typedef struct kscout_view_reports_s kscout_view_reports_t;
+typedef struct kscoout_my_arr_s kscoout_my_arr_t;
 
-struct kscout_view_reports_s {
-  kscout_report_t *items;
-  size_t capacity;
-  size_t count;
-};
+KSCOUT_DA_DEFINE(kscout_my_arr_s, kscout_report_t, reports);
+
+KSCOUT_DA_DEFINE(kscout_view_reports_s, kscout_report_t, reports);
 
 struct kscout_view_s {
   kscout_parser_t *parser;
@@ -318,7 +317,7 @@ int kscout_view_iter_next(kscout_view_iter_t *iter, kscout_report_t *report)
     return KSCOUT_ERR_OUT_OF_BOUNDS;
   }
 
-  *report = iter->view->player_reports.items[iter->index];
+  *report = iter->view->player_reports.reports[iter->index];
   iter->index++;
   return KSCOUT_OK;
 }

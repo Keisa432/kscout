@@ -25,10 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
-
-
 static void pos_lookup(const char *key, uint32_t *mask)
 {
   for (size_t i = 0; i < KSCOUT_POS_MAP_LEN; i++) {
